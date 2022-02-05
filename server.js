@@ -6,7 +6,45 @@
 var bGround = require('fcc-express-bground');
 var myApp = require('./myApp');
 var express = require('express');
+var bodyParser = require('body-parser');
 var app = express();
+
+var myPath = __dirname + '/views/index.html';
+var response = "Hello json".toUpperCase();
+
+app.use('/public', express.static(__dirname + "/public"));
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.get('/', function(req, res){
+  res.sendFile(myPath);
+});
+
+app.get('/:word/echo', (req, res) => {
+  // res.params();
+  res.json({"echo": req.params.word});
+});
+
+app.get('/name', (req, res) => {
+  let { first: firstName, last: lastName } = req.query;
+  res.json({
+    "name":`${firstName} ${lastName}`
+  })
+});
+
+app.get(
+  "/now",
+  (req, res, next) => {
+    req.time = new Date().toString();
+    next();
+  },
+  (req, res) => {
+    res.send({
+      time: req.time
+    });
+  }
+);
 
 if (!process.env.DISABLE_XORIGIN) {
   app.use(function(req, res, next) {
@@ -20,6 +58,8 @@ if (!process.env.DISABLE_XORIGIN) {
     next();
   });
 }
+
+
 
 var port = process.env.PORT || 3000;
 bGround.setupBackgroundApp(app, myApp, __dirname).listen(port, function(){
